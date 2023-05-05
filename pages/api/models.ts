@@ -1,3 +1,17 @@
+/**
+Script used to return API model details in a standardized format to send back to the person.
+
+Without it, we wouldn't be able to communicate with OpenAI or Azure Servers.
+
+API Handler for OpenAI or Azure API models, setups for fetch request is done for both.
+Handle the request and return the response, parse the json, map the models to an array and filter non-matching ones.
+Return the response with the models array and status 200.
+
+ */
+
+
+
+
 import { OPENAI_API_HOST, OPENAI_API_TYPE, OPENAI_API_VERSION, OPENAI_ORGANIZATION } from '@/utils/app/const';
 
 import { OpenAIModel, OpenAIModelID, OpenAIModels } from '@/types/openai';

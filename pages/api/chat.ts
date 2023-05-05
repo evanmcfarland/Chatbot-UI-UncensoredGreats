@@ -1,3 +1,49 @@
+/* 
+TLDR: This file is the actual API request that includes 
+the prompt and relevant info, and returns the text response in a stream.
+
+
+Imoporting the DEFAULT_SYSTEM_PROMPT, DEFAULT_TEMPERATURE, OpenAIError, and OpenAIStream from the utils folder,
+chatbody and message from the types folder, and wasm, Tiktoken, and init from the tiktoken library.
+
+The function takes a Request object as an argument and returns a Promise of a Response.
+
+The Request object is expected to be in JSON format and contain certain properties,
+such as model, messages, key, prompt, and temperature. These properties are destructured
+from the parsed JSON request.
+
+The tiktoken library is initialized with a WASM module, 
+and a new Tiktoken instance is created. The Tiktoken instance is 
+used to encode text into tokens, a common operation in natural
+language processing (NLP).
+
+If the prompt from the request is not provided or is empty, 
+the function uses DEFAULT_SYSTEM_PROMPT as a fallback. Similarly, 
+if the temperature is not provided, it uses DEFAULT_TEMPERATURE.
+
+The prompt is encoded into tokens using the Tiktoken instance, 
+and the number of tokens is counted.
+
+The function then checks each message in the messages array from the request, 
+starting from the end. Each message is encoded into tokens, and if the total 
+number of tokens (including a buffer of 1000 tokens) doesn't exceed the 
+model's token limit, the message is added to the messagesToSend array.
+
+Once all valid messages have been added to messagesToSend, 
+the Tiktoken instance is freed to free up memory.
+
+The function then calls OpenAIStream with the model, prompt, temperature, 
+key, and messagesToSend to make a request to OpenAI's API. 
+The returned stream of data is wrapped in a Response object and returned.
+
+If any error occurs during this process, it is caught and handled. 
+If the error is an instance of OpenAIError, the function returns a 
+Response with a 500 status code and the error message. 
+If the error is of any other type, it returns a Response with a 500 status code and a generic 'Error' message.
+
+*/
+
+
 import { DEFAULT_SYSTEM_PROMPT, DEFAULT_TEMPERATURE } from '@/utils/app/const';
 import { OpenAIError, OpenAIStream } from '@/utils/server';
 

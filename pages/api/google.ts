@@ -1,3 +1,9 @@
+/* If Readability was working, this takes the google search
+and cuts the relevant html extracted data down to the first 2000 chars.
+Need to revamp this to be a weaviate search. 
+ */
+
+
 import { NextApiRequest, NextApiResponse } from 'next';
 
 import { OPENAI_API_HOST } from '@/utils/app/const';

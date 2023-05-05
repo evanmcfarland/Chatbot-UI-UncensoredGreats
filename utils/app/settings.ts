@@ -1,10 +1,14 @@
+/**
+ Basically light and dark mode default.
+ */
+
 import { Settings } from '@/types/settings';
 
 const STORAGE_KEY = 'settings';
 
 export const getSettings = (): Settings => {
   let settings: Settings = {
-    theme: 'dark',
+    theme: 'light',
   };
   const settingsJson = localStorage.getItem(STORAGE_KEY);
   if (settingsJson) {
