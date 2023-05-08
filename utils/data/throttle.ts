@@ -1,3 +1,11 @@
+/**
+The throttle function limits how often a given function can be called within a specified time interval.
+ It returns a new function that can be called multiple times, 
+ but ensures that the original function is only executed once per interval.
+ */
+
+
+
 export function throttle<T extends (...args: any[]) => any>(
   func: T,
   limit: number,

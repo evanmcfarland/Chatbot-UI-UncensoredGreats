@@ -12,24 +12,24 @@ export interface PluginKey {
 }
 
 export enum PluginID {
-  GOOGLE_SEARCH = 'google-search',
+  WEAVIATE_SEARCH = 'weaviate-search',
 }
 
 export enum PluginName {
-  GOOGLE_SEARCH = 'Google Search',
+  WEAVIATE_SEARCH = 'Weaviate Search',
 }
 
 export const Plugins: Record<PluginID, Plugin> = {
-  [PluginID.GOOGLE_SEARCH]: {
-    id: PluginID.GOOGLE_SEARCH,
-    name: PluginName.GOOGLE_SEARCH,
+  [PluginID.WEAVIATE_SEARCH]: {
+    id: PluginID.WEAVIATE_SEARCH,
+    name: PluginName.WEAVIATE_SEARCH,
     requiredKeys: [
       {
-        key: 'GOOGLE_API_KEY',
+        key: 'WEAVIATE_USERNAME',
         value: '',
       },
       {
-        key: 'GOOGLE_CSE_ID',
+        key: 'WEAVIATE_PASSWORD',
         value: '',
       },
     ],
