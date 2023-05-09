@@ -6,12 +6,6 @@ Need to revamp this to be a weaviate search.
 
 // New Code For Weaviate Search
 
-    // I have to define query, content type, sources type, index type, source type, 
-    // cannot find name 'model'
-    // Import endent
-    // Cannot find name 'userMessage'. Did you mean 'answerMessage'?ts(2552) /n google.ts(81, 11): 'answerMessage' is declared here.
-    // Cannot find name 'key'
-
 // Just Carl Jung for now, but this will be the thing.
 // import authorData from '@/data/author_data.json';
 
@@ -19,6 +13,11 @@ Need to revamp this to be a weaviate search.
 //   const authors = Object.keys(authorData);
 //   return authors[Math.floor(Math.random() * authors.length)];
 // }
+
+
+
+
+
 
 const carlJung: Author = {
   category: ["Psychology", "Mysticism", "Philosophy"],
@@ -66,31 +65,22 @@ import endent from 'endent';
 
 import { WeaviateBody, WeaviateResponse, Author, ExtractedData } from '@/types/weaviate';
 
-
 const breadth = 5;
 const scope = `${carlJung.cap_first}_Segments`;
 
-
-
-async function bookSearch(query: string, breadth: number, scope: string) {
-  const WEAVIATE_URL = 'https://uncensoredgreats.weaviate.network';
-  const AUTH_CLIENT_SECRET = {
-    username: process.env.WEAVIATE_USERNAME,
-    password: process.env.WEAVIATE_PASSWORD,
-  };
-  const OPENAI_API_KEY = process.env.OPENAI_APIKEY;
-  const WEAVIATE_HEADERS = { 'X-OpenAI-Api-Key': OPENAI_API_KEY };
-
+const key = process.env.OPENAI_API_KEY;
+async function bookSearch(query: string, breadth: number, scope: string, key: string) {
   const client = weaviate.client ({
     scheme: 'https',
-    host: WEAVIATE_URL,
+    host: 'uncensoredgreats.weaviate.network',
+    headers: { 'X-OpenAI-Api-Key' : key },
     authClientSecret: new AuthUserPasswordCredentials({
-    username: AUTH_CLIENT_SECRET.username,
-    password: AUTH_CLIENT_SECRET.password,
+      username: AUTH_CLIENT_SECRET.username,
+      password: AUTH_CLIENT_SECRET.password,
     })
   });
 
-  client.graphql
+  return client.graphql
     .get()
     .withClassName(scope)
     .withFields('title heading content')
@@ -99,6 +89,8 @@ async function bookSearch(query: string, breadth: number, scope: string) {
     .do()
     .then((res: any) => {
       console.log(JSON.stringify(res, null, 2))
+      // return res.data.Get[scope].items; So this doesn't get the response in at all.
+      return res.data.Get[scope];  // This gets it working, but returns an error from chat.ts somethimes around line 3000, where length=0?
     })
     .catch((err: Error) => {
       console.error(err)
@@ -106,6 +98,14 @@ async function bookSearch(query: string, breadth: number, scope: string) {
 }
 
 function extractData(sources: WeaviateResponse[]): ExtractedData {
+  if (!sources || sources.length === 0) {
+    return {
+      titles: [],
+      headings: [],
+      contents: [],
+    };
+  }
+
   const titles = sources.map((r) => r.title);
   const headings = sources.map((r) => r.heading);
   const contents = sources.map((r) => r.content);
@@ -125,7 +125,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse<any>) => {
     const userMessage = messages[messages.length - 1];
     const query = encodeURI(userMessage.content.trim());
 
-    const weaviateResults = await bookSearch(query, 5, scope);
+    const scope = `${carlJung.cap_first}_Segments`;
+    const weaviateResults = await bookSearch(query, 5, scope, key);
     const { titles, headings, contents } = extractData(weaviateResults);
     
 
@@ -136,8 +137,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse<any>) => {
     Sources:
     ${titles.map((title, index) => {
       return endent`
-      ${title}:
-      ${headings[index]}
+      ${title}: [${headings[index]}]
       \n
       ${contents[index]}
       `;
