@@ -25,7 +25,7 @@ module.exports = {
   'bg-40414F': '#40414F',
   'bg-444654': '#444654',
   'bg-neutral-100': '#F5F3F0',
-  'bg-gray-200': = '#EDEBE9',
+  'bg-gray-200': '#EDEBE9',
   'bg-neutral-300': '#E8E4DC',
   'bg-blue-500': '#A1D1C9',
   'bg-gray-50': '#F8F7F5',

@@ -43,6 +43,7 @@ If the error is of any other type, it returns a Response with a 500 status code 
 
 */
 
+import { bookSearch, extractData } from '@/pages/api/weaviateQuery'; // NEW
 
 import { DEFAULT_SYSTEM_PROMPT, DEFAULT_TEMPERATURE } from '@/utils/app/const';
 import { OpenAIError, OpenAIStream } from '@/utils/server';
@@ -58,6 +59,10 @@ import { Tiktoken, init } from '@dqbd/tiktoken/lite/init';
 export const config = {
   runtime: 'edge',
 };
+
+const breadth = 5 // NEW
+const scope = "Carl_Segments" // NEW
+
 
 const handler = async (req: Request): Promise<Response> => {
   try {
@@ -80,7 +85,17 @@ const handler = async (req: Request): Promise<Response> => {
       temperatureToUse = DEFAULT_TEMPERATURE;
     }
 
-    const prompt_tokens = encoding.encode(promptToSend);
+    const userMessage = messages[messages.length - 1];    // NEW
+    const query = userMessage.content.trim();      // NEW
+    console.log("Before Bookrsearch")
+    const weaviateResults = await bookSearch(query, breadth, scope, key);  // NEW
+    console.log("After Booksearch")
+    const { contents } = extractData(weaviateResults);  // NEW
+    const contentString = contents.join('\n');         // NEW
+
+    promptToSend += "\nRespond using the provided context as if you are Carl Jung: context by Carl Jung: " + contentString;       // NEW
+    console.log(promptToSend)
+    const prompt_tokens = encoding.encode(promptToSend); 
 
     let tokenCount = prompt_tokens.length;
     let messagesToSend: Message[] = [];
@@ -112,3 +127,83 @@ const handler = async (req: Request): Promise<Response> => {
 };
 
 export default handler;
+
+
+
+
+
+
+
+
+
+// OG Chat Code: 
+
+
+// import { DEFAULT_SYSTEM_PROMPT, DEFAULT_TEMPERATURE } from '@/utils/app/const';
+// import { OpenAIError, OpenAIStream } from '@/utils/server';
+
+// import { ChatBody, Message } from '@/types/chat';
+
+// // @ts-expect-error
+// import wasm from '../../node_modules/@dqbd/tiktoken/lite/tiktoken_bg.wasm?module';
+
+// import tiktokenModel from '@dqbd/tiktoken/encoders/cl100k_base.json';
+// import { Tiktoken, init } from '@dqbd/tiktoken/lite/init';
+
+// export const config = {
+//   runtime: 'edge',
+// };
+
+// const handler = async (req: Request): Promise<Response> => {
+//   try {
+//     const { model, messages, key, prompt, temperature } = (await req.json()) as ChatBody;
+
+//     await init((imports) => WebAssembly.instantiate(wasm, imports));
+//     const encoding = new Tiktoken(
+//       tiktokenModel.bpe_ranks,
+//       tiktokenModel.special_tokens,
+//       tiktokenModel.pat_str,
+//     );
+
+//     let promptToSend = prompt;
+//     if (!promptToSend) {
+//       promptToSend = DEFAULT_SYSTEM_PROMPT;
+//     }
+
+//     let temperatureToUse = temperature;
+//     if (temperatureToUse == null) {
+//       temperatureToUse = DEFAULT_TEMPERATURE;
+//     }
+
+//     const prompt_tokens = encoding.encode(promptToSend);
+
+//     let tokenCount = prompt_tokens.length;
+//     let messagesToSend: Message[] = [];
+
+//     for (let i = messages.length - 1; i >= 0; i--) {
+//       const message = messages[i];
+//       const tokens = encoding.encode(message.content);
+
+//       if (tokenCount + tokens.length + 1000 > model.tokenLimit) {
+//         break;
+//       }
+//       tokenCount += tokens.length;
+//       messagesToSend = [message, ...messagesToSend];
+//     }
+
+//     encoding.free();
+
+//     const stream = await OpenAIStream(model, promptToSend, temperatureToUse, key, messagesToSend);
+
+//     return new Response(stream);
+//   } catch (error) {
+//     console.error(error);
+//     if (error instanceof OpenAIError) {
+//       return new Response('Error', { status: 500, statusText: error.message });
+//     } else {
+//       return new Response('Error', { status: 500 });
+//     }
+//   }
+// };
+
+// export default handler;

@@ -1,3 +1,82 @@
+/**
+ Chat.tsx Pseudo Code:
+
+Chat Component:
+  Imports:
+    - Various packages like React, react-hot-toast, next-i18next
+    - Functions from utils like getEndpoint, saveConversation, throttle
+    - Types like ChatBody, Conversation, Message, Plugin
+    - Components like Spinner, ChatInput, ChatLoader, ErrorMessageDiv, ModelSelect, SystemPrompt, TemperatureSlider
+  Properties:
+    - stopConversationRef: An object to control when to stop the conversation
+  State Variables:
+    - currentMessage: The current message in the chat
+    - autoScrollEnabled: A flag to check if auto scrolling is enabled
+    - showSettings: A flag to check if settings should be displayed
+    - showScrollDownButton: A flag to check if the Scroll Down button should be displayed
+  References:
+    - messagesEndRef: A reference to the end of the messages
+    - chatContainerRef: A reference to the chat container
+    - textareaRef: A reference to the text area in the chat
+  Context:
+    - HomeContext: Context for various states and functions related to home
+  Functions:
+    - handleSend: Sends a message in the chat
+      - Parameters: message, deleteCount, plugin
+      - Updates the selected conversation in state
+      - Sends a request to an endpoint
+      - Handles the response and updates the state accordingly
+    - scrollToBottom: Scrolls to the bottom of the chat
+    - handleScroll: Handles the scroll event in the chat
+    - handleScrollDown: Scrolls down the chat
+    - handleSettings: Handles the display of settings
+    - onClearAll: Clears all messages in the chat
+    - scrollDown: Scrolls down the chat
+    - throttledScrollDown: Throttles the scrollDown function
+
+    // Define a side effect that gets triggered when either selectedConversation or throttledScrollDown changes
+start a side-effect (reacts to changes in selectedConversation, throttledScrollDown)
+    call throttledScrollDown
+    if selectedConversation exists
+        set currentMessage to the second-to-last message in selectedConversation.messages
+
+// Define a side effect to be performed with an IntersectionObserver
+start a side-effect (reacts to changes in messagesEndRef)
+    create a new IntersectionObserver
+        if entry.isIntersecting then
+            enable auto-scrolling
+            focus on textareaRef if it exists
+    if messagesEndElement exists
+        start observing messagesEndElement
+    when the effect cleanup runs
+        if messagesEndElement exists
+            stop observing messagesEndElement
+
+// Start building the UI
+return a UI component
+    a div container
+        if neither apiKey nor serverSideApiKeyIsSet exists
+            display a welcome message and instructions for setting up the Chatbot UI
+        else if modelError exists
+            display an error message
+        else
+            a div container with chatContainerRef and scroll handling
+                if selectedConversation has no messages
+                    display a welcome message, a model selector, system prompt, and temperature slider if models exist
+                else
+                    display model, temperature, settings, and clear all buttons
+                    if settings are shown, display a model selector
+                    for each message in selectedConversation.messages
+                        display a memoized chat message, with edit handling
+                    if loading, display a chat loader
+                    a div as a placeholder with messagesEndRef
+            display chat input with send, scroll down, regenerate handling, and a showScrollDownButton
+
+ */
+
+
+
+
 import { IconClearAll, IconSettings } from '@tabler/icons-react';
 import {
   MutableRefObject,
@@ -102,19 +181,38 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
         };
         const endpoint = getEndpoint(plugin);
         let body;
+
         if (!plugin) {
           body = JSON.stringify(chatBody);
         } else {
           body = JSON.stringify({
             ...chatBody,
-            googleAPIKey: pluginKeys
-              .find((key) => key.pluginId === 'google-search')
-              ?.requiredKeys.find((key) => key.key === 'GOOGLE_API_KEY')?.value,
-            googleCSEId: pluginKeys
-              .find((key) => key.pluginId === 'google-search')
-              ?.requiredKeys.find((key) => key.key === 'GOOGLE_CSE_ID')?.value,
           });
         }
+
+        // homeDispatch({ field: 'messageIsStreaming', value: true });
+        // const chatBody: ChatBody = {
+        //   model: updatedConversation.model,
+        //   messages: updatedConversation.messages,
+        //   key: apiKey,
+        //   prompt: updatedConversation.prompt,
+        //   temperature: updatedConversation.temperature,
+        // };
+        // const endpoint = getEndpoint(plugin);
+        // let body;
+        // if (!plugin) {
+        //   body = JSON.stringify(chatBody);
+        // } else {
+        //   body = JSON.stringify({
+        //     ...chatBody,
+        //     googleAPIKey: pluginKeys
+        //       .find((key) => key.pluginId === 'google-search')
+        //       ?.requiredKeys.find((key) => key.key === 'GOOGLE_API_KEY')?.value,
+        //     googleCSEId: pluginKeys
+        //       .find((key) => key.pluginId === 'google-search')
+        //       ?.requiredKeys.find((key) => key.key === 'GOOGLE_CSE_ID')?.value,
+        //   });
+        // }
         const controller = new AbortController();
         const response = await fetch(endpoint, {
           method: 'POST',

@@ -15,10 +15,6 @@ Need to revamp this to be a weaviate search.
 // }
 
 
-
-
-
-
 const carlJung: Author = {
   category: ["Psychology", "Mysticism", "Philosophy"],
   cap_first: "Carl",
@@ -56,7 +52,7 @@ const carlJung: Author = {
 };
 
 import { NextApiRequest, NextApiResponse } from 'next';
-import weaviate, { AuthUserPasswordCredentials, WeaviateClient }  from 'weaviate-ts-client';
+import weaviate, { AuthUserPasswordCredentials }  from 'weaviate-ts-client';
 
 import { OPENAI_API_HOST } from '@/utils/app/const';
 
@@ -69,14 +65,15 @@ const breadth = 5;
 const scope = `${carlJung.cap_first}_Segments`;
 
 const key = process.env.OPENAI_API_KEY;
-async function bookSearch(query: string, breadth: number, scope: string, key: string) {
+export async function bookSearch(query: string, breadth: number, scope: string, key: string) {
+  console.log('Breadth value:', breadth)
   const client = weaviate.client ({
     scheme: 'https',
     host: 'uncensoredgreats.weaviate.network',
     headers: { 'X-OpenAI-Api-Key' : key },
     authClientSecret: new AuthUserPasswordCredentials({
-      username: AUTH_CLIENT_SECRET.username,
-      password: AUTH_CLIENT_SECRET.password,
+      username: WEAVIATE_USERNAME,
+      password: WEAVIATE_PASSWORD,
     })
   });
 
@@ -88,8 +85,7 @@ async function bookSearch(query: string, breadth: number, scope: string, key: st
     .withLimit(breadth)
     .do()
     .then((res: any) => {
-      console.log(JSON.stringify(res, null, 2))
-      // return res.data.Get[scope].items; So this doesn't get the response in at all.
+      // return res.data.Get[scope].items; // So this doesn't get the response in at all.
       return res.data.Get[scope];  // This gets it working, but returns an error from chat.ts somethimes around line 3000, where length=0?
     })
     .catch((err: Error) => {
@@ -97,7 +93,7 @@ async function bookSearch(query: string, breadth: number, scope: string, key: st
     });
 }
 
-function extractData(sources: WeaviateResponse[]): ExtractedData {
+export function extractData(sources: WeaviateResponse[]): ExtractedData {
   if (!sources || sources.length === 0) {
     return {
       titles: [],
@@ -110,6 +106,7 @@ function extractData(sources: WeaviateResponse[]): ExtractedData {
   const headings = sources.map((r) => r.heading);
   const contents = sources.map((r) => r.content);
 
+
   return {
     titles,
     headings,
@@ -121,32 +118,16 @@ function extractData(sources: WeaviateResponse[]): ExtractedData {
 const handler = async (req: NextApiRequest, res: NextApiResponse<any>) => {
   try {
     const { messages, key, model } = req.body as WeaviateBody;
+    console.log('messages', messages)
 
     const userMessage = messages[messages.length - 1];
-    const query = encodeURI(userMessage.content.trim());
+    const query = userMessage.content.trim();
 
     const scope = `${carlJung.cap_first}_Segments`;
-    const weaviateResults = await bookSearch(query, 5, scope, key);
-    const { titles, headings, contents } = extractData(weaviateResults);
-    
+    const weaviateResults = await bookSearch(query, breadth, scope, key);
+    const { contents } = extractData(weaviateResults);
 
-    const answerPrompt = endent`
-    Input:
-    ${query}
-
-    Sources:
-    ${titles.map((title, index) => {
-      return endent`
-      ${title}: [${headings[index]}]
-      \n
-      ${contents[index]}
-      `;
-    }).join('\n\n')}
-
-    Response:
-    `;
-
-    const answerMessage: Message = { role: 'user', content: answerPrompt };
+    const contentString = contents.join('\n');
 
     const answerRes = await fetch(`${OPENAI_API_HOST}/v1/chat/completions`, {
       headers: {
@@ -160,20 +141,23 @@ const handler = async (req: NextApiRequest, res: NextApiResponse<any>) => {
       body: JSON.stringify({
         model: model.id,
         messages: [
-          {
-            role: 'system',
-            content: `Use the sources to provide an accurate response. Respond in markdown format. Cite the sources you used as [1](link), etc, as you use them.`,
-          },
-          answerMessage,
+          {role: 'system', content: ("You are Carl Jung.")},
+          {role: 'user', content: (query + "Respond using the provided context as if you are Carl Jung: " + "context by Carl Jugn: " +  contentString )},
         ],
+        
         max_tokens: 1000,
         temperature: 1,
         stream: false,
       }),
     });
+    console.log('query', query)
+    console.log('contents', contents)
 
     const { choices: choices2 } = await answerRes.json();
     const answer = choices2[0].message.content;
+
+    console.log('OpenAI API Response:', answer);
+    console.log("Messages after response", messages)
 
     res.status(200).json({ answer });
   } catch (error) {
@@ -187,18 +171,6 @@ export default handler;
 
 
  
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

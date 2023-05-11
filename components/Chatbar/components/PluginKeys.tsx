@@ -1,3 +1,10 @@
+// This code is about creating a button that, when clicked, allows you to change the settings for a plugin called "Google Search".
+// When you click on the button, a pop-up window will appear that lets you enter your Google API Key and Google CSE ID. These are special codes that you need to use the Google Search plugin.
+// You can enter your codes into the pop-up window and save them by clicking a button. If you need to clear the codes, you can click another button.
+// The code also makes sure that the pop-up window disappears when you click outside of it or press the "Enter" key without holding down the "Shift" key.
+
+
+
 import { IconKey } from '@tabler/icons-react';
 import { KeyboardEvent, useContext, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -92,13 +99,13 @@ export const PluginKeys = () => {
                     type="password"
                     value={
                       pluginKeys
-                        .find((p) => p.pluginId === PluginID.GOOGLE_SEARCH)
+                        .find((p) => p.pluginId === PluginID.WEAVIATE_SEARCH)
                         ?.requiredKeys.find((k) => k.key === 'GOOGLE_API_KEY')
                         ?.value
                     }
                     onChange={(e) => {
                       const pluginKey = pluginKeys.find(
-                        (p) => p.pluginId === PluginID.GOOGLE_SEARCH,
+                        (p) => p.pluginId === PluginID.WEAVIATE_SEARCH,
                       );
 
                       if (pluginKey) {
@@ -125,7 +132,7 @@ export const PluginKeys = () => {
                         }
                       } else {
                         const newPluginKey: PluginKey = {
-                          pluginId: PluginID.GOOGLE_SEARCH,
+                          pluginId: PluginID.WEAVIATE_SEARCH,
                           requiredKeys: [
                             {
                               key: 'GOOGLE_API_KEY',
@@ -151,13 +158,13 @@ export const PluginKeys = () => {
                     type="password"
                     value={
                       pluginKeys
-                        .find((p) => p.pluginId === PluginID.GOOGLE_SEARCH)
+                        .find((p) => p.pluginId === PluginID.WEAVIATE_SEARCH)
                         ?.requiredKeys.find((k) => k.key === 'GOOGLE_CSE_ID')
                         ?.value
                     }
                     onChange={(e) => {
                       const pluginKey = pluginKeys.find(
-                        (p) => p.pluginId === PluginID.GOOGLE_SEARCH,
+                        (p) => p.pluginId === PluginID.WEAVIATE_SEARCH,
                       );
 
                       if (pluginKey) {
@@ -184,7 +191,7 @@ export const PluginKeys = () => {
                         }
                       } else {
                         const newPluginKey: PluginKey = {
-                          pluginId: PluginID.GOOGLE_SEARCH,
+                          pluginId: PluginID.WEAVIATE_SEARCH,
                           requiredKeys: [
                             {
                               key: 'GOOGLE_API_KEY',
@@ -206,7 +213,7 @@ export const PluginKeys = () => {
                     className="mt-6 w-full rounded-lg border border-neutral-500 px-4 py-2 text-neutral-900 shadow hover:bg-neutral-100 focus:outline-none dark:border-neutral-800 dark:border-opacity-50 dark:bg-white dark:text-black dark:hover:bg-neutral-300"
                     onClick={() => {
                       const pluginKey = pluginKeys.find(
-                        (p) => p.pluginId === PluginID.GOOGLE_SEARCH,
+                        (p) => p.pluginId === PluginID.WEAVIATE_SEARCH,
                       );
 
                       if (pluginKey) {
