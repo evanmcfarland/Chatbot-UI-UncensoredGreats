@@ -2,8 +2,8 @@
 import weaviate, { AuthUserPasswordCredentials } from 'weaviate-ts-client';
 import { WeaviateResponse, ExtractedData } from '@/types/weaviate';
 
-const WEAVIATE_USERNAME = process.env.WEAVIATE_USERNAME;
-const WEAVIATE_PASSWORD = process.env.WEAVIATE_PASSWORD;
+const WEAVIATE_USERNAME = process.env.WEAVIATE_USERNAME as string;
+const WEAVIATE_PASSWORD = process.env.WEAVIATE_PASSWORD as string;
 const key = process.env.OPENAI_API_KEY;
 export async function bookSearch(query: string, breadth: number, scope: string, key: string) {
     const client = weaviate.client ({
