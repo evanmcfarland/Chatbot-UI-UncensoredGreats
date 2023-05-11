@@ -64,6 +64,8 @@ import { WeaviateBody, WeaviateResponse, Author, ExtractedData } from '@/types/w
 const breadth = 5;
 const scope = `${carlJung.cap_first}_Segments`;
 
+const WEAVIATE_USERNAME = process.env.WEAVIATE_USERNAME;
+const WEAVIATE_PASSWORD = process.env.WEAVIATE_PASSWORD;
 const key = process.env.OPENAI_API_KEY;
 export async function bookSearch(query: string, breadth: number, scope: string, key: string) {
   console.log('Breadth value:', breadth)
